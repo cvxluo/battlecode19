@@ -1,5 +1,7 @@
 import {BCAbstractRobot, SPECS} from 'battlecode';
 
+import Tile from './Tile.js'
+import MinPQ from './MinPQ.js'
 import getPath from './astarPath.js'
 
 // bc19run -b javascript -r javascript --replay "replay.bc19"
@@ -24,45 +26,42 @@ class MyRobot extends BCAbstractRobot {
 
           if (step % 100 == 0) {
             this.log("Building Pilgrim");
-            return this.buildUnit(SPECS.PILGRIM, 1, 1);
+            const passMap = this.overlapPassableMaps(this.map, this.getVisibleRobotMap());
+            const buildCoords = this.buildAround([this.me.x, this.me.y], passMap);
+
+            return this.buildUnit(SPECS.PILGRIM, buildCoords[0], buildCoords[1]);
           }
           /*
           if (this.karbonite > 10 && this.fuel > 50) {
             this.log("Building Pilgrim");
             return this.buildUnit(SPECS.PILGRIM, 1, 1);
           }
-          /*
-            if (step % 10 === 0) {
-                this.log("Building a crusader at " + (this.me.x+1) + ", " + (this.me.y+1));
-                return this.buildUnit(SPECS.CRUSADER, 1, 1);
-            } else {
-                return // this.log("Castle health: " + this.me.health);
-            }
-            */
+          */
         }
 
         else if (this.me.unit === SPECS.PILGRIM) {
           if (!hasPath) {
             const location = [this.me.x, this.me.y];
-            const destination = [0, 0];
+            const destination = [0, 37];
             const passMap = this.overlapPassableMaps(this.map, this.getVisibleRobotMap());
+            //this.log(passMap);
             path = getPath(location, destination, passMap);
             hasPath = true;
           }
 
-          this.log(this.map[3][6]);
+          // To be modified - combine multiple movements that don't exceed r^2, which, for pilgrims, is 4
+          var choice = [0, 0];
+          for (var i = 0; i < 1; i++) {
+            const pathStep = path.shift();
+            const nextStep = path[0];
+            const nextStepMove = pathStep.getMovement(nextStep);
+            choice[0] += nextStepMove[0];
+            choice[1] += nextStepMove[1];
 
-          const pathStep = path.shift();
-          const nextStep = path[0];
+          }
 
-          this.log("PATHSTEP " + pathStep);
-          this.log("NEXTSTEP " + nextStep);
-
-
-          const choice = pathStep.getMovement(nextStep);
-          //this.log("PATHLENGTH " + path.length);
-          // if (path.length == 0) hasPath = false;
-          //this.log(choice);
+          if (path.length == 0) hasPath = false;
+          this.log(choice);
           return this.move(...choice);
         }
 
@@ -84,10 +83,9 @@ class MyRobot extends BCAbstractRobot {
         }
       }
 
-
       for (var x = 0; x < robot.length; x++) {
         for (var y = 0; y < robot[x].length; y++) {
-            if (newMap[x][y] && robot[y][x] > 0) newMap[x][y] = false;
+            if (newMap[y][x] && robot[y][x] > 0) newMap[y][x] = false;
         }
       }
 
@@ -98,15 +96,14 @@ class MyRobot extends BCAbstractRobot {
     buildAround(loc, fullPassMap) {
       for (var x = -1; x < 2; x++) {
         for (var y = -1; y < 2; y++) {
-          const dX = x + this.x;
-          const dY = y + this.y;
-          if ((dX >= 0 && dX < fullPassMap.length && dY >= 0 && dY < fullPassMap.length) && fullPassMap[dX][dY]) {
+          const dX = x + loc[0];
+          const dY = y + loc[1];
+          if ((dX >= 0 && dX < fullPassMap.length && dY >= 0 && dY < fullPassMap.length) && fullPassMap[dY][dX]) {
             return [x, y];
           }
         }
       }
-
-
+      return [0, 0];
     }
 
 

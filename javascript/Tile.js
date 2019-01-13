@@ -17,10 +17,12 @@ class Tile {
       for (var y = -1; y < 2; y++) {
         const dX = x + this.x;
         const dY = y + this.y;
-        if ((dX >= 0 && dX < map.length && dY >= 0 && dY < map.length) && map[dX][dY]) {
-          var tile = new Tile(x + this.x, y + this.y, this.distance + 1, this);
-          tiles.push(tile);
-          map[x + this.x][y + this.y] = false;
+        if ((dX >= 0 && dX < map.length && dY >= 0 && dY < map.length) && map[dY][dX]) {
+          if (x != 0 || y != 0) {
+            var tile = new Tile(x + this.x, y + this.y, this.distance + 1, this);
+            tiles.push(tile);
+          }
+          map[dY][dX] = false;
         }
       }
     }

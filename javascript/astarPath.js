@@ -17,7 +17,7 @@ function getPath(loc, dest, passMap) {
   var minPQ = new MinPQ();
 
   var tile = new Tile(loc[0], loc[1], distance, null);
-  pathMap[loc[0]][loc[1]] = false;
+  pathMap[loc[1]][loc[0]] = false;
   minPQ.push(tile);
 
   while (minPQ.size() != 0 && (minPQ.peek().x != destX || minPQ.peek().y != destY)) {
