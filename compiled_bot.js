@@ -434,37 +434,29 @@ function getPath(loc, dest, passMap) {
 
 var step = -1;
 
-var hasPath = false;
 var path = [];
 var destination = [];
 
-var home = [];
+var home = false;
+
+var mode = "";
+
+// Only to be used by castles making lattices
+var radius = 3;
+var lattice = [];
 
 // Castles and churches modify this when they build an unit, units modify right after they are created
-var justBuilt = 1;
+var justBuiltUnit = false;
+var justBuilt = true;
 
 class MyRobot extends BCAbstractRobot {
     turn() {
         step++;
 
         if (this.me.unit === SPECS.CASTLE) {
-          /*
-          this.log("Karbonite: " + this.karbonite);
-          this.log("Fuel: " + this.fuel);
-          */
 
-          if (step % 100 == 0) {
-            this.log("Building Pilgrim");
-            const passMap = this.overlapPassableMaps(this.map, this.getVisibleRobotMap());
-            const buildCoords = this.buildAround([this.me.x, this.me.y], passMap);
-
-            justBuilt = SPECS.PILGRIM;
-            return this.buildUnit(SPECS.PILGRIM, buildCoords[0], buildCoords[1]);
-          }
-
-
-          if (justBuilt) {
-            switch (justBuilt) {
+          if (justBuiltUnit) {
+            switch (justBuiltUnit) {
               case SPECS.PILGRIM :
                 const resources = this.karbonite_map;
                 var nearPath = this.findNearestPath(resources);
@@ -473,42 +465,60 @@ class MyRobot extends BCAbstractRobot {
                 if (nearTile.y < 10) signalValue += "0" + nearTile.y.toString();
                 else signalValue += nearTile.y.toString();
                 signalValue = parseInt(signalValue);
-                this.signal(signalValue, 5);
+                this.signal(signalValue, 3);
+                break;
 
-                /*
-                For the future
-
-                // For castles / churches, whenever a pilgrim is built, it broadcasts the coords of the nearest karbonite node as an index
-                var count = 0;
-                for (var x = 0; x < resources.length; x++) {
-                  for (var y = 0; y < resources[x].length; y++) {
-                    if (resources[x][y]) {
-                      count++;
-                    }
-                    if (nearTile.x == x && nearTile.y == y) {
-                      this.log("ALKJDFLJDSLKF");
-                      return this.signal(count, 2);
-                      break;
+              case SPECS.PROPHET :
+                const passMap = this.overlapPassableMaps(this.map, this.getVisibleRobotMap());
+                var signalValue = null;
+                while (!signalValue) {
+                  for (var r = this.me.x - radius; r <= this.me.x + radius; r += 2) {
+                    for (var s = this.me.y - radius; s <= this.me.y + radius; s += 2) {
+                      if (passMap[s][r] && !lattice.includes([r,s])) {
+                        signalValue = r.toString();
+                        if (s < 10) signalValue += "0" + s.toString();
+                        else signalValue += s.toString();
+                        signalValue = parseInt(signalValue);
+                        lattice.push([r, s]);
+                        this.signal(signalValue, 3);
+                      }
                     }
                   }
+                  if (!signalValue) { radius++; }
                 }
-                */
 
-                /*
-              case SPECS.CASTLE :
                 break;
-                */
-
             }
-            justBuilt = false;
+
+            justBuiltUnit = false;
+
+          }
+
+          else {
+            if (step == 0) {
+              this.log("Building Pilgrim");
+              const passMap = this.overlapPassableMaps(this.map, this.getVisibleRobotMap());
+              const buildCoords = this.buildAround([this.me.x, this.me.y], passMap);
+
+              justBuiltUnit = SPECS.PILGRIM;
+              return this.buildUnit(SPECS.PILGRIM, buildCoords[0], buildCoords[1]);
+            }
+
+            else if (this.karbonite >= 25 && this.fuel >= 50){
+              this.log("Building Prophet");
+              const passMap = this.overlapPassableMaps(this.map, this.getVisibleRobotMap());
+              const buildCoords = this.buildAround([this.me.x, this.me.y], passMap);
+
+              justBuiltUnit = SPECS.PROPHET;
+              return this.buildUnit(SPECS.PROPHET, buildCoords[0], buildCoords[1]);
+            }
           }
         }
 
         else if (this.me.unit === SPECS.PILGRIM) {
 
           if (!home) {
-            home[0] = this.me.x;
-            home[1] = this.me.y;
+            home = [this.me.x, this.me.y];
           }
 
           const visRobots = this.getVisibleRobots();
@@ -526,38 +536,64 @@ class MyRobot extends BCAbstractRobot {
             const y = signal % 100;
             destination = [x, y];
 
-            if (hasPath && path.length == 0) {
-              if (this.me.karbonite == 20) {
-                hasPath = false;
-                const k = home.slice();
-                home = destination;
-                destination = k;
+            mode = "TOMINE";
+            justBuilt++;
+          }
+
+          if (justBuilt == 3) {
+
+            const location = [this.me.x, this.me.y];
+            const passMap = this.overlapPassableMaps(this.map, this.getVisibleRobotMap());
+            //this.log(passMap);
+            path = getPath(location, destination, passMap);
+
+            if (mode == "TOHOME") {
+              const loc = [this.me.x, this.me.y];
+              const visRobots = this.getVisibleRobots();
+
+              for (var i = 0; i < visRobots.length; i++) {
+                if (visRobots[i].unit == SPECS.CASTLE || visRobots[i].unit == SPECS.CHURCH) {
+                  var dX = visRobots[i].x - this.me.x;
+                  var dY = visRobots[i].y - this.me.y;
+                  if ((Math.abs(dX) == 0 || Math.abs(dX) == 1) && (Math.abs(dY) == 0 || Math.abs(dY) == 1)) {
+                    mode = "TOMINE";
+                    const k = home.slice();
+                    home = destination;
+                    destination = k;
+                    return this.give(dX, dY, this.me.karbonite, 0);
+                  }
+                }
               }
+            }
+
+            if (mode == "MINING") {
+              if (this.me.karbonite == 20) { mode = "TOHOME"; }
               else {
                 return this.mine();
               }
             }
 
-            if (!hasPath) {
-              const location = [this.me.x, this.me.y];
-              const passMap = this.overlapPassableMaps(this.map, this.getVisibleRobotMap());
-              //this.log(passMap);
-              path = getPath(location, destination, passMap);
-              hasPath = true;
+            if (this.me.x == destination[0] && this.me.y == destination[1]) {
+              if (mode == "TOMINE") {
+                mode = "MINING";
+                const k = home.slice();
+                home = destination;
+                destination = k;
+              }
             }
 
             // To be modified - combine multiple movements that don't exceed r^2, which, for pilgrims, is 4
             var choice = [0, 0];
             for (var i = 0; i < 1; i++) {
               const pathStep = path.shift();
-              const nextStep = path[0];
-              const nextStepMove = pathStep.getMovement(nextStep);
-              choice[0] += nextStepMove[0];
-              choice[1] += nextStepMove[1];
-
+              if (path[0] != null) {
+                const nextStep = path[0];
+                const nextStepMove = pathStep.getMovement(nextStep);
+                choice[0] += nextStepMove[0];
+                choice[1] += nextStepMove[1];
+              }
             }
 
-            if (path.length == 0) hasPath = false;
             return this.move(...choice);
 
 
@@ -585,11 +621,62 @@ class MyRobot extends BCAbstractRobot {
           }
         }
 
-        else if (this.me.unit === SPECS.CRUSADER) {
-            // this.log("Crusader health: " + this.me.health);
-            const choices = [[0,-1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]];
-            const choice = choices[Math.floor(Math.random()*choices.length)];
+        else if (this.me.unit === SPECS.PROPHET) {
+
+          const visRobots = this.getVisibleRobots();
+
+          if (justBuilt == 2) {
+
+            var signal = null;
+            for (var i = 0; i < visRobots.length; i++) {
+              if (visRobots[i].unit == SPECS.CASTLE && this.isRadioing(visRobots[i])) {
+                signal = visRobots[i].signal;
+              }
+            }
+
+            const x = Math.floor(signal / 100);
+            const y = signal % 100;
+            destination = [x, y];
+
+            justBuilt = false;
+          }
+
+          else if (!justBuilt) {
+
+            //Attack on sight
+            for (var i = 0; i < visRobots.length; i++) {
+              if (visRobots[i].team != this.me.team) {
+                var dX = visRobots[i].x - this.me.x;
+                var dY = visRobots[i].y - this.me.y;
+                return this.attack(dX, dY);
+              }
+            }
+
+
+            const location = [this.me.x, this.me.y];
+            const passMap = this.overlapPassableMaps(this.map, this.getVisibleRobotMap());
+            //this.log(passMap);
+            path = getPath(location, destination, passMap);
+
+            var choice = [0, 0];
+            for (var i = 0; i < 1; i++) {
+              const pathStep = path.shift();
+              if (path[0] != null) {
+                const nextStep = path[0];
+                const nextStepMove = pathStep.getMovement(nextStep);
+                choice[0] += nextStepMove[0];
+                choice[1] += nextStepMove[1];
+              }
+            }
+
             return this.move(...choice);
+          }
+
+
+          if (justBuilt) {
+            justBuilt = 2;
+          }
+
         }
 
 
