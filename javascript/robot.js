@@ -18,10 +18,12 @@ var home = false;
 var mode = "";
 
 // Only to be used by castles making lattices
-var radius = 0;
+var radius = 3;
+var lattice = [];
 
 // Castles and churches modify this when they build an unit, units modify right after they are created
-var justBuilt = false;
+var justBuiltUnit = false;
+var justBuilt = true;
 
 class MyRobot extends BCAbstractRobot {
     turn() {
@@ -29,10 +31,8 @@ class MyRobot extends BCAbstractRobot {
 
         if (this.me.unit === SPECS.CASTLE) {
 
-          if (justBuilt) {
-            this.log("Signalling");
-            justBuilt = false;
-            switch (justBuilt) {
+          if (justBuiltUnit) {
+            switch (justBuiltUnit) {
               case SPECS.PILGRIM :
                 const resources = this.karbonite_map;
                 var nearPath = this.findNearestPath(resources);
@@ -45,40 +45,49 @@ class MyRobot extends BCAbstractRobot {
                 break;
 
               case SPECS.PROPHET :
-                const nextLattice = [0, 0];
-                var signalValue = nearTile.x.toString();
-                if (nearTile.y < 10) signalValue += "0" + nearTile.y.toString();
-                else signalValue += nearTile.y.toString();
-                signalValue = parseInt(signalValue);
-                this.signal(signalValue, 3);
+                const passMap = this.overlapPassableMaps(this.map, this.getVisibleRobotMap());
+                var signalValue = null;
+                while (!signalValue) {
+                  for (var r = this.me.x - radius; r <= this.me.x + radius; r += 2) {
+                    for (var s = this.me.y - radius; s <= this.me.y + radius; s += 2) {
+                      if (passMap[s][r] && !lattice.includes([r,s])) {
+                        signalValue = r.toString();
+                        if (s < 10) signalValue += "0" + s.toString();
+                        else signalValue += s.toString();
+                        signalValue = parseInt(signalValue);
+                        lattice.push([r, s]);
+                        this.signal(signalValue, 3);
+                      }
+                    }
+                  }
+                  if (!signalValue) { radius++; }
+                }
+
                 break;
-
-              }
             }
-          else {
 
+            justBuiltUnit = false;
 
-          /*
-          this.log("Karbonite: " + this.karbonite);
-          this.log("Fuel: " + this.fuel);
-          */
-
-          if (step == 0) {
-            this.log("Building Pilgrim");
-            const passMap = this.overlapPassableMaps(this.map, this.getVisibleRobotMap());
-            const buildCoords = this.buildAround([this.me.x, this.me.y], passMap);
-
-            justBuilt = SPECS.PILGRIM;
-            return this.buildUnit(SPECS.PILGRIM, buildCoords[0], buildCoords[1]);
           }
 
           else {
-            this.log("Building Prophet");
-            const passMap = this.overlapPassableMaps(this.map, this.getVisibleRobotMap());
-            const buildCoords = this.buildAround([this.me.x, this.me.y], passMap);
+            if (step == 0) {
+              this.log("Building Pilgrim");
+              const passMap = this.overlapPassableMaps(this.map, this.getVisibleRobotMap());
+              const buildCoords = this.buildAround([this.me.x, this.me.y], passMap);
 
-            justBuilt = SPECS.PROPHET;
-            return this.buildUnit(SPECS.PROPHET, buildCoords[0], buildCoords[1]);
+              justBuiltUnit = SPECS.PILGRIM;
+              return this.buildUnit(SPECS.PILGRIM, buildCoords[0], buildCoords[1]);
+            }
+
+            else if (this.karbonite >= 25 && this.fuel >= 50){
+              this.log("Building Prophet");
+              const passMap = this.overlapPassableMaps(this.map, this.getVisibleRobotMap());
+              const buildCoords = this.buildAround([this.me.x, this.me.y], passMap);
+
+              justBuiltUnit = SPECS.PROPHET;
+              return this.buildUnit(SPECS.PROPHET, buildCoords[0], buildCoords[1]);
+            }
           }
         }
 
@@ -189,37 +198,60 @@ class MyRobot extends BCAbstractRobot {
         }
 
         else if (this.me.unit === SPECS.PROPHET) {
-          //Attack on sight
 
           const visRobots = this.getVisibleRobots();
 
-          for (var i = 0; i < visRobots.length; i++) {
-            if (visRobots[i].team != this.me.team) {
-              var dX = visRobots[i].x - this.me.x;
-              var dY = visRobots[i].y - this.me.y;
-              return this.attack(dX, dY);
+          if (justBuilt == 2) {
+
+            var signal = null;
+            for (var i = 0; i < visRobots.length; i++) {
+              if (visRobots[i].unit == SPECS.CASTLE && this.isRadioing(visRobots[i])) {
+                signal = visRobots[i].signal;
+              }
             }
+
+            const x = Math.floor(signal / 100);
+            const y = signal % 100;
+            destination = [x, y];
+
+            justBuilt = false;
+          }
+
+          else if (!justBuilt) {
+
+            //Attack on sight
+            for (var i = 0; i < visRobots.length; i++) {
+              if (visRobots[i].team != this.me.team) {
+                var dX = visRobots[i].x - this.me.x;
+                var dY = visRobots[i].y - this.me.y;
+                return this.attack(dX, dY);
+              }
+            }
+
+
+            const location = [this.me.x, this.me.y];
+            const passMap = this.overlapPassableMaps(this.map, this.getVisibleRobotMap());
+            //this.log(passMap);
+            path = getPath(location, destination, passMap);
+
+            var choice = [0, 0];
+            for (var i = 0; i < 1; i++) {
+              const pathStep = path.shift();
+              if (path[0] != null) {
+                const nextStep = path[0];
+                const nextStepMove = pathStep.getMovement(nextStep);
+                choice[0] += nextStepMove[0];
+                choice[1] += nextStepMove[1];
+              }
+            }
+
+            return this.move(...choice);
           }
 
 
-
-          const location = [this.me.x, this.me.y];
-          const passMap = this.overlapPassableMaps(this.map, this.getVisibleRobotMap());
-          //this.log(passMap);
-          path = getPath(location, destination, passMap);
-
-          var choice = [0, 0];
-          for (var i = 0; i < 1; i++) {
-            const pathStep = path.shift();
-            if (path[0] != null) {
-              const nextStep = path[0];
-              const nextStepMove = pathStep.getMovement(nextStep);
-              choice[0] += nextStepMove[0];
-              choice[1] += nextStepMove[1];
-            }
+          if (justBuilt) {
+            justBuilt = 2;
           }
-
-          return this.move(...choice);
 
         }
 
