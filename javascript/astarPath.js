@@ -5,9 +5,7 @@ import MinPQ from './MinPQ.js';
 function getPath(loc, dest, passMap) {
   var pathMap = [];
   for (var x = 0; x < passMap.length; x++) {
-    for (var y = 0; y < passMap[x].length; y++) {
-        pathMap[x] = passMap[x].slice();
-    }
+      pathMap[x] = passMap[x].slice();
   }
 
   const destX = dest[0];
@@ -17,8 +15,8 @@ function getPath(loc, dest, passMap) {
   var minPQ = new MinPQ();
 
   var tile = new Tile(loc[0], loc[1], distance, null);
-  pathMap[loc[1]][loc[0]] = false;
   minPQ.push(tile);
+  passMap[loc[1]][loc[0]] = false;
 
   while (minPQ.size() != 0 && (minPQ.peek().x != destX || minPQ.peek().y != destY)) {
     var minTile = minPQ.pop();

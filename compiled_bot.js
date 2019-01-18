@@ -471,6 +471,117 @@ class MyRobot extends BCAbstractRobot {
               case SPECS.PROPHET :
                 const passMap = this.overlapPassableMaps(this.map, this.getVisibleRobotMap());
                 var signalValue = null;
+
+                // wow this code is huge and really needs to be compressed a bit
+                if (this.me.team == 0) {
+                  while (!signalValue) {
+                    var s = this.me.y - radius;
+                    var r = this.me.x - radius;
+                    for (r = this.me.x - radius; r <= this.me.x + radius; r += 2) {
+                      if (passMap[s][r] && !lattice.includes([r,s])) {
+                        signalValue = r.toString();
+                        if (s < 10) signalValue += "0" + s.toString();
+                        else signalValue += s.toString();
+                        signalValue = parseInt(signalValue);
+                        lattice.push([r, s]);
+                        this.signal(signalValue, 3);
+                      }
+                    }
+
+                    r = this.me.x - radius;
+                    for (s = this.me.y - radius; s <= this.me.y + radius; s += 2) {
+                      if (passMap[s][r] && !lattice.includes([r,s])) {
+                        signalValue = r.toString();
+                        if (s < 10) signalValue += "0" + s.toString();
+                        else signalValue += s.toString();
+                        signalValue = parseInt(signalValue);
+                        lattice.push([r, s]);
+                        this.signal(signalValue, 3);
+                    }
+                  }
+                    r = this.me.x + radius;
+                    for (s = this.me.y - radius; s <= this.me.y + radius; s += 2) {
+                      if (passMap[s][r] && !lattice.includes([r,s])) {
+                        signalValue = r.toString();
+                        if (s < 10) signalValue += "0" + s.toString();
+                        else signalValue += s.toString();
+                        signalValue = parseInt(signalValue);
+                        lattice.push([r, s]);
+                        this.signal(signalValue, 3);
+                    }
+                  }
+
+                    s = this.me.y + radius;
+                    for (r = this.me.x - radius; r <= this.me.x + radius; r += 2) {
+                      if (passMap[s][r] && !lattice.includes([r,s])) {
+                        signalValue = r.toString();
+                        if (s < 10) signalValue += "0" + s.toString();
+                        else signalValue += s.toString();
+                        signalValue = parseInt(signalValue);
+                        lattice.push([r, s]);
+                        this.signal(signalValue, 3);
+                      }
+                    }
+
+                    if (!signalValue) { radius++; }
+                  }
+                }
+                else {
+                  while (!signalValue) {
+                    var s = this.me.y + radius;
+                    var r = this.me.x + radius;
+                    for (r = this.me.x + radius; r >= this.me.x + radius; r -= 2) {
+                      if (passMap[s][r] && !lattice.includes([r,s])) {
+                        signalValue = r.toString();
+                        if (s < 10) signalValue += "0" + s.toString();
+                        else signalValue += s.toString();
+                        signalValue = parseInt(signalValue);
+                        lattice.push([r, s]);
+                        this.signal(signalValue, 3);
+                      }
+                    }
+
+                    r = this.me.x + radius;
+                    for (s = this.me.y + radius; s >= this.me.y - radius; s -= 2) {
+                      if (passMap[s][r] && !lattice.includes([r,s])) {
+                        signalValue = r.toString();
+                        if (s < 10) signalValue += "0" + s.toString();
+                        else signalValue += s.toString();
+                        signalValue = parseInt(signalValue);
+                        lattice.push([r, s]);
+                        this.signal(signalValue, 3);
+                    }
+                  }
+                    r = this.me.x - radius;
+                    for (s = this.me.y + radius; s >= this.me.y - radius; s -= 2) {
+                      if (passMap[s][r] && !lattice.includes([r,s])) {
+                        signalValue = r.toString();
+                        if (s < 10) signalValue += "0" + s.toString();
+                        else signalValue += s.toString();
+                        signalValue = parseInt(signalValue);
+                        lattice.push([r, s]);
+                        this.signal(signalValue, 3);
+                    }
+                  }
+
+                    s = this.me.y - radius;
+                    for (r = this.me.x + radius; r >= this.me.x - radius; r -= 2) {
+                      if (passMap[s][r] && !lattice.includes([r,s])) {
+                        signalValue = r.toString();
+                        if (s < 10) signalValue += "0" + s.toString();
+                        else signalValue += s.toString();
+                        signalValue = parseInt(signalValue);
+                        lattice.push([r, s]);
+                        this.signal(signalValue, 3);
+                      }
+                    }
+
+                    if (!signalValue) { radius++; }
+                  }
+                }
+
+
+                /*
                 while (!signalValue) {
                   for (var r = this.me.x - radius; r <= this.me.x + radius; r += 2) {
                     for (var s = this.me.y - radius; s <= this.me.y + radius; s += 2) {
@@ -486,6 +597,7 @@ class MyRobot extends BCAbstractRobot {
                   }
                   if (!signalValue) { radius++; }
                 }
+                */
 
                 break;
             }
