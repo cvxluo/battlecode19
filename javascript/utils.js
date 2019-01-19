@@ -22,6 +22,12 @@ function findNearestPath(location, resourceMap, passMap, excludes) {
       resourceCopy[x] = resourceMap[x].slice();
   }
 
+  for (var i = 0; i < excludes.length; i++) {
+    const exclude = excludes[i];
+    resourceCopy[exclude[1]][exclude[0]] = false;
+  }
+
+  /*
   for (var x = 0; x < resourceCopy.length; x++) {
     for (var y = 0; y < resourceCopy[x].length; y++) {
       if (resourceCopy[y][x] && excludes.includes([x, y])) {
@@ -29,6 +35,7 @@ function findNearestPath(location, resourceMap, passMap, excludes) {
       }
     }
   }
+  */
 
   const loc = [location[0], location[1]];
   var paths = [];
@@ -47,7 +54,7 @@ function findNearestPath(location, resourceMap, passMap, excludes) {
   // Always will be at least 1 node for resources
   var min = paths[0];
   for (var i = 0; i < paths.length; i++) {
-    if (paths[i].length < min.length && paths[i].length != 0) { min = paths[i]; }
+    if (paths[i].length <= min.length && paths[i].length != 0) { min = paths[i]; }
   }
 
   // TODO: Sometimes an empty path is being returned
@@ -124,6 +131,7 @@ function countResources(resourceMap) {
       }
     }
   }
+  return count;
 }
 
 function makeMapCopy(toCopy) {

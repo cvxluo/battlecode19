@@ -10,6 +10,13 @@ function getPath(loc, dest, passMap) {
 
   const destX = dest[0];
   const destY = dest[1];
+
+  /*
+  if (!passMap[destY][destX]) {
+    return -1;
+  }
+  */
+  
   var distance = 0;
 
   var minPQ = new MinPQ();
