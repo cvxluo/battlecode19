@@ -439,7 +439,7 @@ function buildAround(loc, fullPassMap) {
       const dX = x + loc[0];
       const dY = y + loc[1];
       if ((dX >= 0 && dX < fullPassMap.length && dY >= 0 && dY < fullPassMap.length) && fullPassMap[dY][dX]) {
-        return [x, y];
+        return [y, x];
       }
     }
   }
@@ -615,8 +615,6 @@ var closeResources = [];
 var shortPreachersBuilt = 0;
 const SHORT_PREACHERS = 4;
 
-const PANIC_MODE = 6;
-
 
 // Castles and churches modify this when they build an unit, units modify right after they are created
 var justBuiltUnit = false;
@@ -630,6 +628,7 @@ class MyRobot extends BCAbstractRobot {
 
           const visRobots = this.getVisibleRobots();
 
+          /*
           for (var i = 0; i < visRobots.length; i++) {
             if (visRobots[i].castle_talk > PANIC_MODE) {
 
@@ -651,14 +650,17 @@ class MyRobot extends BCAbstractRobot {
                 }
                 */
                 //enemyResources.push()
+                /*
 
               }
-
               else {
-                shortPreachersBuilt--;
+                if (shortPreachersBuilt > 0) {
+                  shortPreachersBuilt--;
+                }
               }
             }
           }
+          */
 
 
           for (var i = 0; i < visRobots.length; i++) {
@@ -666,7 +668,7 @@ class MyRobot extends BCAbstractRobot {
               var dX = visRobots[i].x - this.me.x;
               var dY = visRobots[i].y - this.me.y;
 
-              if (Math.abs(dX) + Math.abs(dY) > 8) {
+              if (Math.abs(dX) + Math.abs(dY) > 8 && step > 60) {
                 if (shortPreachersBuilt < SHORT_PREACHERS) {
 
                   const passMap = overlapPassableMaps(this.map, this.getVisibleRobotMap());
@@ -680,7 +682,9 @@ class MyRobot extends BCAbstractRobot {
 
                 }
                 else {
-                  shortPreachersBuilt--;
+                  if (shortPreachersBuilt > 0) {
+                    shortPreachersBuilt--;
+                  }
                   justBuiltUnit = false;
                 }
               }
@@ -871,6 +875,7 @@ class MyRobot extends BCAbstractRobot {
 
           const visRobots = this.getVisibleRobots();
 
+          /*
           for (var i = 0; i < visRobots.length; i++) {
             if (visRobots[i].castle_talk > PANIC_MODE) {
 
@@ -892,14 +897,17 @@ class MyRobot extends BCAbstractRobot {
                 }
                 */
                 //enemyResources.push()
-
+                /*
               }
 
               else {
-                shortPreachersBuilt--;
+                if (shortPreachersBuilt > 0) {
+                  shortPreachersBuilt--;
+                }
               }
             }
           }
+          */
 
           for (var i = 0; i < visRobots.length; i++) {
             if (visRobots[i].team != this.me.team && visRobots[i].x != undefined) {
@@ -920,7 +928,9 @@ class MyRobot extends BCAbstractRobot {
 
                 }
                 else {
-                  shortPreachersBuilt--;
+                  if (shortPreachersBuilt > 0) {
+                    shortPreachersBuilt--;
+                  }
                   justBuiltUnit = false;
                 }
               }

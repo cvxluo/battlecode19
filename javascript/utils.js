@@ -8,7 +8,7 @@ function buildAround(loc, fullPassMap) {
       const dX = x + loc[0];
       const dY = y + loc[1];
       if ((dX >= 0 && dX < fullPassMap.length && dY >= 0 && dY < fullPassMap.length) && fullPassMap[dY][dX]) {
-        return [x, y];
+        return [y, x];
       }
     }
   }
