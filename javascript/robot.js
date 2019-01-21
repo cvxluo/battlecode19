@@ -16,7 +16,7 @@ import {
 // bc19run -b javascript -r javascript --replay "replay.bc19" --seed 1
 // --chi 1000
 
-const CHURCH_DIST = 4;
+const CHURCH_DIST = 6;
 
 const MODE_LISTEN = 1;
 const MODE_TOMINE = 2;
@@ -50,6 +50,13 @@ var pilgrims = [];
 const CLOSE_RESOURCE = 4;
 var closeResources = [];
 
+var enemyResources = [];
+
+var shortPreachersBuilt = 0;
+const SHORT_PREACHERS = 4;
+
+const PANIC_MODE = 6;
+
 
 // Castles and churches modify this when they build an unit, units modify right after they are created
 var justBuiltUnit = false;
@@ -64,40 +71,61 @@ class MyRobot extends BCAbstractRobot {
           const visRobots = this.getVisibleRobots();
 
           for (var i = 0; i < visRobots.length; i++) {
+            if (visRobots[i].castle_talk > PANIC_MODE) {
+
+              if (shortPreachersBuilt < SHORT_PREACHERS) {
+
+                shortPreachersBuilt++;
+                const passMap = overlapPassableMaps(this.map, this.getVisibleRobotMap());
+                const buildCoords = buildAround([this.me.x, this.me.y], passMap);
+
+                justBuiltUnit = SPECS.PREACHER;
+                this.log("Building Preacher");
+
+                return this.buildUnit(SPECS.PREACHER, buildCoords[0], buildCoords[1]);
+                /*
+                for (var j = 0; j < pilgrims.length; j++) {
+                  if (visRobots[i].id == pilgrims[j][0]) {
+
+                  }
+                }
+                */
+                //enemyResources.push()
+
+              }
+
+              else {
+                shortPreachersBuilt--;
+              }
+            }
+          }
+
+
+          for (var i = 0; i < visRobots.length; i++) {
             if (visRobots[i].team != this.me.team && visRobots[i].x != undefined) {
               var dX = visRobots[i].x - this.me.x;
               var dY = visRobots[i].y - this.me.y;
 
               if (Math.abs(dX) + Math.abs(dY) > 8) {
-                if (this.karbonite >= 30 && this.fuel >= 50) {
+                if (shortPreachersBuilt < SHORT_PREACHERS) {
 
                   const passMap = overlapPassableMaps(this.map, this.getVisibleRobotMap());
                   const buildCoords = buildAround([this.me.x, this.me.y], passMap);
 
+                  shortPreachersBuilt++;
                   justBuiltUnit = SPECS.PREACHER;
+                  this.log("Building Preacher");
 
                   return this.buildUnit(SPECS.PREACHER, buildCoords[0], buildCoords[1]);
 
                 }
-                this.log("Building Preacher");
+                else {
+                  shortPreachersBuilt--;
+                  justBuiltUnit = false;
+                }
               }
               else {
-                if (justBuiltUnit == SPECS.PREACHER) {
-                  return this.attack(dX, dY);
-                }
-                else {
-                  if (this.karbonite >= 30 && this.fuel >= 50) {
-
-                    const passMap = overlapPassableMaps(this.map, this.getVisibleRobotMap());
-                    const buildCoords = buildAround([this.me.x, this.me.y], passMap);
-
-                    justBuiltUnit = SPECS.PREACHER;
-
-                    return this.buildUnit(SPECS.PREACHER, buildCoords[0], buildCoords[1]);
-
-                  }
-                  this.log("Building Preacher");
-                }
+                return this.attack(dX, dY);
               }
             }
           }
@@ -257,7 +285,7 @@ class MyRobot extends BCAbstractRobot {
               }
 
             }
-            if ((step == 5) || (countResources(this.karbonite_map) > pilgrims.length && step % 40 == 0)) {
+            if ((step == 1) || ((countResources(this.karbonite_map) > pilgrims.length && step % 40 == 0 && step <= 300))) {
               this.log("Building Pilgrim");
               const passMap = overlapPassableMaps(this.map, this.getVisibleRobotMap());
               const buildCoords = buildAround([this.me.x, this.me.y], passMap);
@@ -267,7 +295,7 @@ class MyRobot extends BCAbstractRobot {
               return this.buildUnit(SPECS.PILGRIM, buildCoords[0], buildCoords[1]);
             }
 
-            else if (this.karbonite >= 100 && this.fuel >= 300) {
+            else if ((step > 15) && this.karbonite >= 75 && this.fuel >= 125 && this.karbonite >= lattice.length * 15) {
               this.log("Building Prophet");
               const passMap = overlapPassableMaps(this.map, this.getVisibleRobotMap());
               const buildCoords = buildAround([this.me.x, this.me.y], passMap);
@@ -283,6 +311,64 @@ class MyRobot extends BCAbstractRobot {
 
           const visRobots = this.getVisibleRobots();
 
+          for (var i = 0; i < visRobots.length; i++) {
+            if (visRobots[i].castle_talk > PANIC_MODE) {
+
+              if (shortPreachersBuilt < SHORT_PREACHERS) {
+
+                shortPreachersBuilt++;
+                const passMap = overlapPassableMaps(this.map, this.getVisibleRobotMap());
+                const buildCoords = buildAround([this.me.x, this.me.y], passMap);
+
+                justBuiltUnit = SPECS.PREACHER;
+                this.log("Building Preacher");
+
+                return this.buildUnit(SPECS.PREACHER, buildCoords[0], buildCoords[1]);
+                /*
+                for (var j = 0; j < pilgrims.length; j++) {
+                  if (visRobots[i].id == pilgrims[j][0]) {
+
+                  }
+                }
+                */
+                //enemyResources.push()
+
+              }
+
+              else {
+                shortPreachersBuilt--;
+              }
+            }
+          }
+
+          for (var i = 0; i < visRobots.length; i++) {
+            if (visRobots[i].team != this.me.team && visRobots[i].x != undefined) {
+              var dX = visRobots[i].x - this.me.x;
+              var dY = visRobots[i].y - this.me.y;
+
+              if (Math.abs(dX) + Math.abs(dY) > 8) {
+                if (shortPreachersBuilt < SHORT_PREACHERS) {
+
+                  const passMap = overlapPassableMaps(this.map, this.getVisibleRobotMap());
+                  const buildCoords = buildAround([this.me.x, this.me.y], passMap);
+
+                  shortPreachersBuilt++;
+                  justBuiltUnit = SPECS.PREACHER;
+                  this.log("Building Preacher");
+
+                  return this.buildUnit(SPECS.PREACHER, buildCoords[0], buildCoords[1]);
+
+                }
+                else {
+                  shortPreachersBuilt--;
+                  justBuiltUnit = false;
+                }
+              }
+            }
+          }
+
+
+
           if (justBuiltUnit) {
             switch (justBuiltUnit) {
               case SPECS.PILGRIM :
@@ -438,7 +524,7 @@ class MyRobot extends BCAbstractRobot {
               }
 
             }
-            if ((step == 5) || (countResources(this.karbonite_map) > pilgrims.length && step % 40 == 0)) {
+            if ((step == 1) || ((countResources(this.karbonite_map) > pilgrims.length && step % 40 == 0 && step <= 220))) {
               this.log("Building Pilgrim");
               const passMap = overlapPassableMaps(this.map, this.getVisibleRobotMap());
               const buildCoords = buildAround([this.me.x, this.me.y], passMap);
@@ -448,7 +534,7 @@ class MyRobot extends BCAbstractRobot {
               return this.buildUnit(SPECS.PILGRIM, buildCoords[0], buildCoords[1]);
             }
 
-            else if (this.karbonite >= 100 && this.fuel >= 300) {
+            else if (this.karbonite >= 75 && this.fuel >= 125 && this.karbonite >= lattice.length * 15) {
               this.log("Building Prophet");
               const passMap = overlapPassableMaps(this.map, this.getVisibleRobotMap());
               const buildCoords = buildAround([this.me.x, this.me.y], passMap);
@@ -463,6 +549,16 @@ class MyRobot extends BCAbstractRobot {
         else if (this.me.unit === SPECS.PILGRIM) {
 
           const visRobots = this.getVisibleRobots();
+
+          for (var i = 0; i < visRobots.length; i++) {
+            var count = 0;
+            if (visRobots[i].team != this.me.team) {
+              count++;
+            }
+            if (count > 2) {
+              this.castleTalk(count - 2);
+            }
+          }
 
           if (mode == MODE_LISTEN) {
 
@@ -504,10 +600,6 @@ class MyRobot extends BCAbstractRobot {
 
             if (this.karbonite >= 50 && this.fuel >= 200) {
               const resources = overlapResourceMaps(this.karbonite_map, this.fuel_map);
-
-              if (resources === undefined) {
-                this.log("WTF");
-              }
               const passMap = overlapPassableMaps(this.map, this.getVisibleRobots());
               var possibleTiles = [];
               for (var x = -1; x < 2; x++) {
@@ -587,6 +679,12 @@ class MyRobot extends BCAbstractRobot {
           if (destination) {
             path = getPath(location, destination, passMap);
 
+            if (path == null) {
+              const choices = [[0,-1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]];
+              const choice = choices[Math.floor(Math.random()*choices.length)]
+              return this.move(...choice);
+            }
+
 
             // To be modified - combine multiple movements that don't exceed r^2, which, for pilgrims, is 4
             var choice = [0, 0];
@@ -621,6 +719,14 @@ class MyRobot extends BCAbstractRobot {
         else if (this.me.unit === SPECS.PROPHET) {
 
           const visRobots = this.getVisibleRobots();
+
+          for (var i = 0; i < visRobots.length; i++) {
+            var count = 0;
+            if (visRobots[i].team != this.me.team) {
+              count++;
+            }
+            this.castleTalk(count);
+          }
 
           if (mode == MODE_LISTEN) {
 
@@ -691,6 +797,14 @@ class MyRobot extends BCAbstractRobot {
         else if (this.me.unit === SPECS.PREACHER) {
 
           const visRobots = this.getVisibleRobots();
+
+          for (var i = 0; i < visRobots.length; i++) {
+            var count = 0;
+            if (visRobots[i].team != this.me.team) {
+              count++;
+            }
+            this.castleTalk(count);
+          }
 
           if (mode == MODE_LISTEN) {
             home = [this.me.x, this.me.y];
@@ -773,8 +887,6 @@ class MyRobot extends BCAbstractRobot {
 
       const x = loc[0];
       const y = loc[1];
-
-      this.log("LOC " + loc);
 
       if (symmetry) {
         return [x, this.map.length - y];

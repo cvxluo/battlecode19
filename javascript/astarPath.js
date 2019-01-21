@@ -11,9 +11,11 @@ function getPath(loc, dest, passMap) {
   const destX = dest[0];
   const destY = dest[1];
 
+  /*
   if (!passMap[destY][destX]) {
     pathMap[destY][destX] = true;
   }
+  */
 
   var distance = 0;
 
