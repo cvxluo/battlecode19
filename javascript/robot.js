@@ -550,16 +550,6 @@ class MyRobot extends BCAbstractRobot {
 
           const visRobots = this.getVisibleRobots();
 
-          for (var i = 0; i < visRobots.length; i++) {
-            var count = 0;
-            if (visRobots[i].team != this.me.team) {
-              count++;
-            }
-            if (count > 2) {
-              this.castleTalk(count - 2);
-            }
-          }
-
           if (mode == MODE_LISTEN) {
 
             home = [this.me.x, this.me.y];
@@ -720,14 +710,6 @@ class MyRobot extends BCAbstractRobot {
 
           const visRobots = this.getVisibleRobots();
 
-          for (var i = 0; i < visRobots.length; i++) {
-            var count = 0;
-            if (visRobots[i].team != this.me.team) {
-              count++;
-            }
-            this.castleTalk(count);
-          }
-
           if (mode == MODE_LISTEN) {
 
             var signal = null;
@@ -798,13 +780,6 @@ class MyRobot extends BCAbstractRobot {
 
           const visRobots = this.getVisibleRobots();
 
-          for (var i = 0; i < visRobots.length; i++) {
-            var count = 0;
-            if (visRobots[i].team != this.me.team) {
-              count++;
-            }
-            this.castleTalk(count);
-          }
 
           if (mode == MODE_LISTEN) {
             home = [this.me.x, this.me.y];
