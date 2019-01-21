@@ -106,11 +106,11 @@ class MyRobot extends BCAbstractRobot {
 
 
           for (var i = 0; i < visRobots.length; i++) {
-            if (visRobots[i].team != this.me.team && visRobots[i].x != undefined) {
+            if (visRobots[i].team != this.me.team && visRobots[i].x != undefined && visRobots.unit != SPECS.PILGRIM) {
               var dX = visRobots[i].x - this.me.x;
               var dY = visRobots[i].y - this.me.y;
 
-              if (Math.abs(dX) + Math.abs(dY) > 8 && step > 60) {
+              if (Math.abs(dX) + Math.abs(dY) > 8) {
                 if (shortPreachersBuilt < SHORT_PREACHERS) {
 
                   const passMap = overlapPassableMaps(this.map, this.getVisibleRobotMap());
