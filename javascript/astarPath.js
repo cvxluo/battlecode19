@@ -11,11 +11,13 @@ function getPath(loc, dest, passMap) {
   const destX = dest[0];
   const destY = dest[1];
 
-  /*
   if (!passMap[destY][destX]) {
-    pathMap[destY][destX] = true;
+    /*
+    const holdTile = new Tile(0, 0, 0, null);
+    return [holdTile];
+    */
+    return null;
   }
-  */
 
   var distance = 0;
 

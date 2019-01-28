@@ -7,8 +7,8 @@ function buildAround(loc, fullPassMap) {
     for (var y = -1; y < 2; y++) {
       const dX = x + loc[0];
       const dY = y + loc[1];
-      if ((dX >= 0 && dX < fullPassMap.length && dY >= 0 && dY < fullPassMap.length) && fullPassMap[dY][dX]) {
-        return [y, x];
+      if (validCoords(dX, dY, fullPassMap) && fullPassMap[dY][dX]) {
+        return [x, y];
       }
     }
   }
@@ -51,10 +51,13 @@ function findNearestPath(location, resourceMap, passMap, excludes) {
     }
   }
 
-  // Always will be at least 1 node for resources
-  var min = paths[0];
+  var min = [];
+  if (paths[0] != null) {
+    min = paths[0];
+  }
+
   for (var i = 0; i < paths.length; i++) {
-    if (paths[i].length <= min.length && paths[i].length != 0) { min = paths[i]; }
+    if (paths[i] != null && paths[i].length <= min.length && paths[i].length != 0) { min = paths[i]; }
   }
 
   // TODO: Sometimes an empty path is being returned
@@ -144,4 +147,22 @@ function makeMapCopy(toCopy) {
   return newMap;
 }
 
-export { buildAround, findNearestPath, overlapPassableMaps, overlapResourceMaps, passableMapsNoResources, getSymmetry, countResources, makeMapCopy }
+function validCoords(x, y, map) {
+  if (x >= 0 && x < map.length) {
+    if (y >= 0 && y < map.length) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export { buildAround,
+  findNearestPath,
+  overlapPassableMaps,
+  overlapResourceMaps,
+  passableMapsNoResources,
+  getSymmetry,
+  countResources,
+  makeMapCopy,
+  validCoords,
+}
